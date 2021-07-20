@@ -31,7 +31,7 @@ objects:
     strategy:
       type: Docker
       dockerStrategy:
-        dockerfilePath: Dockerfile.agent
+        dockerfilePath: Dockerfile
     postCommit: {}
     source:
       contextDir: docker
@@ -107,9 +107,6 @@ objects:
                 --wallet-storage-creds "$(eval echo \"${WALLET_STORAGE_CREDENTIALS}\")"
                 $([ ! -z "${AGENT_DID_SEED}" ] && echo "--seed ${AGENT_DID_SEED}" || echo "")
                 $([ ! -z "${AGENT_ADMIN_API_KEY}" ] && echo "--admin-api-key ${AGENT_ADMIN_API_KEY}" || echo "--admin-insecure-mode")
-                --multitenant
-                --multitenant-admin
-                --jwt-secret '${JWT_SECRET}'
                 --label '${AGENT_NAME}'
                 --log-level ${AGENT_LOG_LEVEL});
             env:

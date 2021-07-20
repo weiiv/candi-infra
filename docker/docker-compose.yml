@@ -1,0 +1,104 @@
+version: "3"
+services:
+  #
+  # Agent
+  #
+  agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      LEDGER_URL: ${LEDGER_URL}
+      WALLET_TYPE: ${AGENT_STORAGE_WALLET_TYPE}
+      POSTGRESQL_WALLET_HOST: ${WALLET_HOST}
+      POSTGRESQL_WALLET_PORT: ${WALLET_PORT}
+      POSTGRESQL_WALLET_USER: ${WALLET_USER}
+      POSTGRESQL_WALLET_PASSWORD: ${WALLET_PASSWORD}
+      WALLET_ENCRYPTION_KEY: ${AGENT_WALLET_ENCRYPTION_KEY}
+      INDY_WALLET_SEED: ${AGENT_WALLET_SEED}
+      WEBHOOK_URL: ${AGENT_WEBHOOK_URL}
+      HTTP_INTERFACE_PORT: ${AGENT_HTTP_INTERFACE_PORT}
+      AGENT_ADMIN_PORT: ${AGENT_ADMIN_PORT}
+      AGENT_NAME: ${AGENT_NAME}
+      AGENT_ADMIN_API_KEY: ${AGENT_ADMIN_API_KEY}
+      TAILS_SERVER_URL: ${TAILS_SERVER_URL}
+    networks:
+      - network
+    ports:
+      - ${AGENT_HTTP_INTERFACE_PORT}:${AGENT_HTTP_INTERFACE_PORT}
+      - ${AGENT_ADMIN_PORT}:${AGENT_ADMIN_PORT}
+    depends_on:
+      - wallet
+    entrypoint: /bin/bash
+    command: [
+        "-c",
+        "curl -d '{\"seed\":\"${AGENT_WALLET_SEED}\", \"role\":\"TRUST_ANCHOR\", \"alias\":\"${AGENT_NAME}\"}' -X POST ${LEDGER_URL}/register; \
+        sleep 5; \
+        aca-py start \
+        --inbound-transport http '0.0.0.0' ${AGENT_HTTP_INTERFACE_PORT} \
+        --outbound-transport http \
+        --endpoint ${AGENT_ENDPOINT} \
+        --genesis-url '${LEDGER_URL}/genesis' \
+        --auto-accept-invites \
+        --auto-accept-requests \
+        --auto-ping-connection \
+        --auto-respond-messages \
+        --auto-store-credential \
+        --auto-verify-presentation \
+        --auto-respond-presentation-proposal \
+        --auto-provision \
+        --wallet-type 'indy' \
+        --wallet-name '${AGENT_WALLET_NAME}' \
+        --wallet-key '${AGENT_WALLET_ENCRYPTION_KEY}' \
+        --wallet-storage-type '${AGENT_STORAGE_WALLET_TYPE}' \
+        --wallet-storage-config '{\"url\":\"${WALLET_HOST}:${WALLET_PORT}\",\"max_connections\":5}' \
+        --wallet-storage-creds '{\"account\":\"${WALLET_USER}\",\"password\":\"${WALLET_PASSWORD}\",\"admin_account\":\"${WALLET_USER}\",\"admin_password\":\"${WALLET_PASSWORD}\"}' \
+        --seed '${AGENT_WALLET_SEED}' \
+        --admin '0.0.0.0' ${AGENT_ADMIN_PORT} \
+        --${AGENT_ADMIN_MODE} \
+        --label '${AGENT_NAME}' \
+        --tails-server-base-url ${TAILS_SERVER_URL} \
+        ${AGENT_TENANCY_MODE}",
+      ]
+
+  #
+  # Wallet
+  #
+  wallet:
+    image: postgres:12-alpine
+    environment:
+      POSTGRES_USER: ${WALLET_USER}
+      POSTGRES_PASSWORD: ${WALLET_PASSWORD}
+    networks:
+      - network
+    ports:
+      - ${WALLET_PORT}:${WALLET_PORT}
+    volumes:
+      - wallet-data:/var/lib/postgresql/data
+
+  #
+  # Tails Server
+  #
+  tails-server:
+    build:
+      context: https://github.com/bcgov/indy-tails-server.git
+      dockerfile: docker/Dockerfile.tails-server
+    ports:
+      - ${TAILS_SERVER_PORT}:${TAILS_SERVER_PORT}
+    volumes:
+      - tails-storage:/tmp
+    networks:
+      - network
+    command: >
+      tails-server
+        --host 0.0.0.0
+        --port $TAILS_SERVER_PORT
+        --storage-path $TAILS_STORAGE_PATH
+        --log-level $LOG_LEVEL
+
+networks:
+  network:
+
+volumes:
+  wallet-data:
+  tails-storage:
