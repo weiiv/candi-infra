@@ -57,6 +57,7 @@ services:
         --admin '0.0.0.0' ${AGENT_ADMIN_PORT} \
         --${AGENT_ADMIN_MODE} \
         --label '${AGENT_NAME}' \
+        --log-level ${LOG_LEVEL} \
         --tails-server-base-url ${TAILS_SERVER_URL} \
         ${AGENT_TENANCY_MODE}",
       ]

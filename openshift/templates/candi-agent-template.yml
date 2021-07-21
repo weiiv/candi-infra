@@ -105,6 +105,7 @@ objects:
                 --wallet-storage-type "${WALLET_STORAGE_TYPE}"
                 --wallet-storage-config "$(eval echo \"${WALLET_STORAGE_CONFIGURATION}\")"
                 --wallet-storage-creds "$(eval echo \"${WALLET_STORAGE_CREDENTIALS}\")"
+                --tails-server-base-url ${TAILS_SERVER_URL}
                 $([ ! -z "${AGENT_DID_SEED}" ] && echo "--seed ${AGENT_DID_SEED}" || echo "")
                 $([ ! -z "${AGENT_ADMIN_API_KEY}" ] && echo "--admin-api-key ${AGENT_ADMIN_API_KEY}" || echo "--admin-insecure-mode")
                 --label '${AGENT_NAME}'
@@ -159,6 +160,8 @@ objects:
                   secretKeyRef:
                     name: candi-wallet
                     key: agent-did
+              - name: WEBHOOK_URL
+                value: ${AGENT_WEBHOOK_URL}
               - name: HTTP_INTERFACE_PORT
                 value: ${AGENT_HTTP_PORT}
               - name: ADMIN_INTERFACE_PORT
@@ -269,7 +272,7 @@ parameters:
   displayName: Log Level
   description: The logging level of the agent.
   required: true
-  value: DEBUG
+  value: ERROR
 - name: POSTGRESQL_WALLET_HOST
   displayName: PostgreSql key management service hostname
   required: true
@@ -285,6 +288,11 @@ parameters:
   description: The key management service storage type.  Your choice of 'postgres_storage' or 'sqlite_storage' at the moment.  If not defined, defaults to 'sqlite_storage' for compatibility.
   required: false
   value: postgres_storage
+- name: AGENT_WEBHOOK_URL
+  displayName: Agent webhook URL
+  description: The webhook URL for the agent
+  required: false
+  value: "https://issuer-controller.ngrok.io/webhooks"
 - name: AGENT_ADMIN_PORT
   displayName: Agent Admin Port
   description: The admin port on which the service will listen.
@@ -309,14 +317,14 @@ parameters:
   displayName: Agent name
   description: The name of the agent.
   required: true
-  value: "Aries-Cloud-Agent"
+  value: "ODS-DEV-ISSUER"
 - name: AGENT_ENDPOINT
   displayName: Agent endpoint
   description: The endpoint of the agent.
   required: true
-  value: "https://candi-agent.apps.ocp1.az.uat.aro.gocloud.gov.on.ca"
-- name: AGENT_ADMIN_ENDPOINT
-  displayName: Agent admin endpoint
-  description: The endpoint of the agent.
+  value: "https://ws.dev.issuer-agent.candi.gov.on.ca"
+- name: TAILS_SERVER_URL
+  displayName: Tails server URL
+  description: The URL of the tails server.
   required: true
-  value: "https://candi-agent-admin.apps.ocp1.az.uat.aro.gocloud.gov.on.ca"
+  value: "https://ws.dev.tails-server.candi.gov.on.ca"
