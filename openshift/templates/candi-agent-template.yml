@@ -272,7 +272,7 @@ parameters:
   displayName: Log Level
   description: The logging level of the agent.
   required: true
-  value: ERROR
+  value: DEBUG
 - name: POSTGRESQL_WALLET_HOST
   displayName: PostgreSql key management service hostname
   required: true
@@ -292,7 +292,7 @@ parameters:
   displayName: Agent webhook URL
   description: The webhook URL for the agent
   required: false
-  value: "https://issuer-controller.ngrok.io/webhooks"
+  value: "https://covax.dev.ontariohealth.ca:2443/webhooks"
 - name: AGENT_ADMIN_PORT
   displayName: Agent Admin Port
   description: The admin port on which the service will listen.
